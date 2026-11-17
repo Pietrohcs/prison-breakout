@@ -1,149 +1,257 @@
-
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
-// Jogador
+// Estado do jogo
+let escapou = false;
+
+// Jogador (Prisioneiro)
 const jogador = {
-    x: 375,
-    y: 200,
-    largura: 40,
-    altura: 40,
+    x: 380,
+    y: 230,
+    largura: 36,
+    altura: 36,
     velocidade: 4
+};
+
+// Chave da cela
+const chave = {
+    x: 230,
+    y: 340,
+    tamanho: 20,
+    coletada: false
+};
+
+// Porta/Saída no topo da cela
+const saida = {
+    x: 340,
+    y: 0,
+    largura: 120,
+    altura: 30
 };
 
 // Teclas pressionadas
 const teclas = {};
 
-// Detectar quando uma tecla é pressionada
 document.addEventListener("keydown", function(event) {
-    teclas[event.key.toLowerCase()] = true;
+    const tecla = event.key.toLowerCase();
+    teclas[tecla] = true;
+
+    // Reiniciar jogo ao apertar R após escapar
+    if (tecla === "r" && escapou) {
+        reiniciarJogo();
+    }
 });
 
-// Detectar quando uma tecla é solta
 document.addEventListener("keyup", function(event) {
     teclas[event.key.toLowerCase()] = false;
 });
 
+function reiniciarJogo() {
+    escapou = false;
+    chave.coletada = false;
+    jogador.x = 380;
+    jogador.y = 230;
+}
+
 // Movimentar jogador
 function movimentar() {
+    if (escapou) return; // Para o movimento se já venceu
+
     if (teclas["arrowup"] || teclas["w"]) {
         jogador.y -= jogador.velocidade;
     }
-
     if (teclas["arrowdown"] || teclas["s"]) {
         jogador.y += jogador.velocidade;
     }
-
     if (teclas["arrowleft"] || teclas["a"]) {
         jogador.x -= jogador.velocidade;
     }
-
     if (teclas["arrowright"] || teclas["d"]) {
         jogador.x += jogador.velocidade;
     }
 
-    // Impedir que o jogador saia do cenário
-    if (jogador.x < 0) jogador.x = 0;
-    if (jogador.y < 0) jogador.y = 0;
-
-    if (jogador.x + jogador.largura > canvas.width) {
-        jogador.x = canvas.width - jogador.largura;
+    // Limites das paredes laterais e inferior (parede de 30px)
+    if (jogador.x < 30) jogador.x = 30;
+    if (jogador.x + jogador.largura > canvas.width - 30) {
+        jogador.x = canvas.width - 30 - jogador.largura;
+    }
+    if (jogador.y + jogador.altura > canvas.height - 30) {
+        jogador.y = canvas.height - 30 - jogador.altura;
     }
 
-    if (jogador.y + jogador.altura > canvas.height) {
-        jogador.y = canvas.height - jogador.altura;
+    // Parede superior (y = 30): só deixa passar se pegou a chave E está alinhado com a porta
+    const naDirecaoDaPorta =
+        jogador.x >= saida.x &&
+        jogador.x + jogador.largura <= saida.x + saida.largura;
+
+    if (chave.coletada && naDirecaoDaPorta) {
+        // Se passar totalmente pela saída no topo, escapou!
+        if (jogador.y <= 5) {
+            escapou = true;
+        }
+    } else {
+        // Caso contrário, bate na parede ou na grade trancada
+        if (jogador.y < 30) jogador.y = 30;
     }
 }
 
+function verificarChave() {
+    if (
+        !chave.coletada &&
+        jogador.x < chave.x + chave.tamanho &&
+        jogador.x + jogador.largura > chave.x &&
+        jogador.y < chave.y + chave.tamanho &&
+        jogador.y + jogador.altura > chave.y
+    ) {
+        chave.coletada = true;
+    }
+}
+
+function desenharCenario() {
+    // 1. PISO DE CONCRETO DA CELA
+    ctx.fillStyle = "#5c6066";
+    ctx.fillRect(30, 30, canvas.width - 60, canvas.height - 60);
+
+    // Rejunte do piso (blocos grandes e sutis)
+    ctx.strokeStyle = "#4e5257";
+    ctx.lineWidth = 2;
+    for (let x = 30; x <= canvas.width - 30; x += 74) {
+        ctx.beginPath();
+        ctx.moveTo(x, 30);
+        ctx.lineTo(x, canvas.height - 30);
+        ctx.stroke();
+    }
+    for (let y = 30; y <= canvas.height - 30; y += 78) {
+        ctx.beginPath();
+        ctx.moveTo(30, y);
+        ctx.lineTo(canvas.width - 30, y);
+        ctx.stroke();
+    }
+
+    // 2. PAREDES DE TIJOLO/CONCRETO GROSSO (30px)
+    ctx.fillStyle = "#26282b";
+    ctx.fillRect(0, 0, 340, 30);          // Parede topo esquerda
+    ctx.fillRect(460, 0, 340, 30);         // Parede topo direita
+    ctx.fillRect(0, 0, 30, canvas.height); // Parede esquerda
+    ctx.fillRect(canvas.width - 30, 0, 30, canvas.height); // Parede direita
+    ctx.fillRect(0, canvas.height - 30, canvas.width, 30); // Parede baixo
+
+    // 3. PORTA DA CELA (Vão da saída no topo)
+    // Fundo do corredor externo (verde escuro se destrancada, escuro se trancada)
+    ctx.fillStyle = chave.coletada ? "#2d6a4f" : "#16181a";
+    ctx.fillRect(saida.x, saida.y, saida.largura, saida.altura);
+
+    // Desenha as grades APENAS se a chave ainda NÃO foi coletada
+    if (!chave.coletada) {
+        ctx.fillStyle = "#adb5bd";
+        for (let x = saida.x + 8; x < saida.x + saida.largura; x += 14) {
+            ctx.fillRect(x, 0, 5, 30);
+        }
+        // Trava vermelha no meio da grade
+        ctx.fillStyle = "#d90429";
+        ctx.fillRect(saida.x + 48, 10, 24, 10);
+    } else {
+        // Seta indicando saída livre
+        ctx.fillStyle = "#95d5b2";
+        ctx.font = "bold 14px Arial";
+        ctx.fillText("▲ SAÍDA LIVRE ▲", saida.x + 4, 21);
+    }
+
+    // 4. CAMA (Canto superior esquerdo encostada na parede)
+    ctx.fillStyle = "#1f2124"; // Estrutura de ferro
+    ctx.fillRect(35, 35, 130, 65);
+    ctx.fillStyle = "#d8dee9"; // Lençol
+    ctx.fillRect(40, 40, 120, 55);
+    ctx.fillStyle = "#4361ee"; // Cobertor dobrado
+    ctx.fillRect(95, 40, 65, 55);
+    ctx.fillStyle = "#ffffff"; // Travesseiro
+    ctx.fillRect(45, 48, 30, 38);
+
+    // 5. PIA E VASO SANITÁRIO (Canto superior direito encostados na parede)
+    // Vaso
+    ctx.fillStyle = "#e5e9f0";
+    ctx.fillRect(710, 40, 50, 45);
+    ctx.fillStyle = "#4c566a";
+    ctx.beginPath();
+    ctx.arc(730, 62, 12, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Pia metálica ao lado
+    ctx.fillStyle = "#9aa5b1";
+    ctx.fillRect(655, 35, 45, 35);
+    ctx.fillStyle = "#52606d";
+    ctx.fillRect(663, 42, 29, 20);
+
+    // 6. MESA E BANCO (Canto inferior direito)
+    // Banco
+    ctx.fillStyle = "#4a3219";
+    ctx.fillRect(635, 315, 40, 20);
+    // Mesa
+    ctx.fillStyle = "#7f5539";
+    ctx.fillRect(600, 340, 120, 55);
+    ctx.strokeStyle = "#582f0e";
+    ctx.lineWidth = 3;
+    ctx.strokeRect(600, 340, 120, 55);
+}
 
 function desenhar() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     movimentar();
+    verificarChave();
+    desenharCenario();
 
-    // Piso de concreto
-    ctx.fillStyle = "#777777";
-    ctx.fillRect(20, 20, 760, 410);
-
-    // Detalhes do piso
-    ctx.strokeStyle = "#696969";
-    ctx.lineWidth = 1;
-
-    for (let x = 40; x < 780; x += 80) {
+    // Desenhar Chave (se ainda não pegou)
+    if (!chave.coletada) {
+        ctx.fillStyle = "#ffd60a";
         ctx.beginPath();
-        ctx.moveTo(x, 20);
-        ctx.lineTo(x, 430);
-        ctx.stroke();
+        ctx.arc(chave.x + 6, chave.y + 8, 6, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillRect(chave.x + 11, chave.y + 6, 14, 4);
+        ctx.fillRect(chave.x + 18, chave.y + 10, 4, 5);
     }
 
-    for (let y = 60; y < 430; y += 80) {
-        ctx.beginPath();
-        ctx.moveTo(20, y);
-        ctx.lineTo(780, y);
-        ctx.stroke();
-    }
+    // Desenhar Prisioneiro (Uniforme Laranja de Presídio)
+    ctx.fillStyle = "#f77f00";
+    ctx.fillRect(jogador.x, jogador.y, jogador.largura, jogador.altura);
+    ctx.strokeStyle = "#d62828";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(jogador.x, jogador.y, jogador.largura, jogador.altura);
 
-    // Cama
-    ctx.fillStyle = "#333333";
-    ctx.fillRect(55, 65, 130, 65);
+    // Cabeça do Prisioneiro
+    ctx.fillStyle = "#f1c27d";
+    ctx.fillRect(jogador.x + 8, jogador.y + 6, 20, 18);
 
-    ctx.fillStyle = "#b5b5b5";
-    ctx.fillRect(65, 75, 110, 45);
+    // Cabelo
+    ctx.fillStyle = "#2b2d42";
+    ctx.fillRect(jogador.x + 8, jogador.y + 4, 20, 6);
 
-    ctx.fillStyle = "#eeeeee";
-    ctx.fillRect(70, 80, 35, 30);
-
-    // Vaso sanitário
-    ctx.fillStyle = "#dddddd";
-    ctx.fillRect(650, 65, 65, 75);
-
-    ctx.fillStyle = "#888888";
-    ctx.fillRect(660, 85, 45, 35);
-
-    // Mesa
-    ctx.fillStyle = "#654321";
-    ctx.fillRect(600, 330, 110, 55);
-
-    // Paredes externas
-    ctx.fillStyle = "#292929";
-    ctx.fillRect(0, 0, 800, 20);
-    ctx.fillRect(0, 0, 20, 450);
-    ctx.fillRect(780, 0, 20, 450);
-    ctx.fillRect(0, 430, 800, 20);
-
-    // Entrada da cela
-    ctx.fillStyle = "#9b713f";
-    ctx.fillRect(350, 20, 100, 15);
-
-    // Grades de ferro
-    ctx.fillStyle = "#171717";
-
-    for (let x = 350; x <= 450; x += 10) {
-        ctx.fillRect(x, 20, 4, 90);
-    }
-
-    // Texto da porta
-    ctx.fillStyle = "white";
-    ctx.font = "12px Arial";
-    ctx.fillText("SAÍDA", 375, 125);
-
-    // Personagem
-    ctx.fillStyle = "#2455cc";
-    ctx.fillRect(
-        jogador.x,
-        jogador.y,
-        jogador.largura,
-        jogador.altura
+    // HUD - Objetivo no canto inferior esquerdo
+    ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
+    ctx.fillRect(35, canvas.height - 65, 290, 28);
+    ctx.fillStyle = chave.coletada ? "#80ed99" : "#ffffff";
+    ctx.font = "bold 14px Arial";
+    ctx.fillText(
+        chave.coletada ? "✔ Porta aberta! Saia pelo topo!" : "Objetivo: Pegue a chave dourada",
+        45,
+        canvas.height - 46
     );
 
-    // Cabeça
-    ctx.fillStyle = "#e8b98c";
-    ctx.fillRect(
-        jogador.x + 10,
-        jogador.y - 8,
-        20,
-        10
-    );
+    // Tela de Vitória quando escapar
+    if (escapou) {
+        ctx.fillStyle = "rgba(0, 0, 0, 0.8)";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        ctx.fillStyle = "#80ed99";
+        ctx.font = "bold 36px Arial";
+        ctx.textAlign = "center";
+        ctx.fillText("VOCÊ ESCAPOU DA PRISÃO!", canvas.width / 2, 200);
+
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "18px Arial";
+        ctx.fillText("Pressione R para jogar novamente", canvas.width / 2, 250);
+        ctx.textAlign = "start"; // Volta alinhamento padrão
+    }
 
     requestAnimationFrame(desenhar);
 }
