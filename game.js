@@ -10,13 +10,13 @@ const jogador = {
     y: 230,
     largura: 36,
     altura: 36,
-    velocidade: 4
+    velocidade: 5
 };
 
 // Chave da cela
 const chave = {
-    x: 230,
-    y: 340,
+    x: 560,
+    y: 355,
     tamanho: 20,
     coletada: false
 };
@@ -36,7 +36,7 @@ document.addEventListener("keydown", function(event) {
     const tecla = event.key.toLowerCase();
     teclas[tecla] = true;
 
-    // Reiniciar jogo ao apertar R após escapar
+    // Reiniciar o jogo quando apertar R após escapar
     if (tecla === "r" && escapou) {
         reiniciarJogo();
     }
@@ -70,7 +70,7 @@ function movimentar() {
         jogador.x += jogador.velocidade;
     }
 
-    // Limites das paredes laterais e inferior (parede de 30px)
+    // Limites das paredes laterais e inferior
     if (jogador.x < 30) jogador.x = 30;
     if (jogador.x + jogador.largura > canvas.width - 30) {
         jogador.x = canvas.width - 30 - jogador.largura;
@@ -79,7 +79,7 @@ function movimentar() {
         jogador.y = canvas.height - 30 - jogador.altura;
     }
 
-    // Parede superior (y = 30): só deixa passar se pegou a chave E está alinhado com a porta
+    // Parede superior: só deixa passar se pegou a chave e estiver alinhado com a porta
     const naDirecaoDaPorta =
         jogador.x >= saida.x &&
         jogador.x + jogador.largura <= saida.x + saida.largura;
@@ -128,7 +128,7 @@ function desenharCenario() {
         ctx.stroke();
     }
 
-    // 2. PAREDES DE TIJOLO/CONCRETO GROSSO (30px)
+    // 2. PAREDES DE TIJOLO/CONCRETO GROSSO
     ctx.fillStyle = "#26282b";
     ctx.fillRect(0, 0, 340, 30);          // Parede topo esquerda
     ctx.fillRect(460, 0, 340, 30);         // Parede topo direita
@@ -151,7 +151,7 @@ function desenharCenario() {
         ctx.fillStyle = "#d90429";
         ctx.fillRect(saida.x + 48, 10, 24, 10);
     } else {
-        // Seta indicando saída livre
+        // Seta indicando saída
         ctx.fillStyle = "#95d5b2";
         ctx.font = "bold 14px Arial";
         ctx.fillText("▲ SAÍDA LIVRE ▲", saida.x + 4, 21);
@@ -226,7 +226,7 @@ function desenhar() {
     ctx.fillStyle = "#2b2d42";
     ctx.fillRect(jogador.x + 8, jogador.y + 4, 20, 6);
 
-    // HUD - Objetivo no canto inferior esquerdo
+    // Objetivo no canto inferior esquerdo
     ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
     ctx.fillRect(35, canvas.height - 65, 290, 28);
     ctx.fillStyle = chave.coletada ? "#80ed99" : "#ffffff";
@@ -250,7 +250,7 @@ function desenhar() {
         ctx.fillStyle = "#ffffff";
         ctx.font = "18px Arial";
         ctx.fillText("Pressione R para jogar novamente", canvas.width / 2, 250);
-        ctx.textAlign = "start"; // Volta alinhamento padrão
+        ctx.textAlign = "start";
     }
 
     requestAnimationFrame(desenhar);
