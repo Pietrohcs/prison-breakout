@@ -3,13 +3,66 @@ body {
     color: white;
     font-family: Arial, sans-serif;
     text-align: center;
+    margin: 0;
+    padding: 20px;
+}
+
+#telaInicial {
+    width: 600px;
+    margin: 60px auto;
 }
 
 h1 {
     color: #e63946;
+    font-size: 38px;
+}
+
+p {
+    font-size: 16px;
+    color: #dddddd;
+}
+
+button {
+    padding: 12px 24px;
+    font-size: 16px;
+    font-weight: bold;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin: 10px 5px;
+}
+
+.btn-vermelho {
+    background-color: #e63946;
+    color: white;
+}
+
+.btn-cinza {
+    background-color: #333333;
+    color: white;
+}
+
+#tutorial {
+    background-color: #222222;
+    border: 1px solid #444444;
+    padding: 15px;
+    margin-top: 20px;
+    text-align: left;
+}
+
+#tutorial h2 {
+    color: #e63946;
+    margin-top: 0;
+}
+
+.creditos {
+    margin-top: 40px;
+    font-size: 13px;
+    color: #888888;
 }
 
 canvas {
     background-color: #303030;
     border: 3px solid white;
+    margin-bottom: 10px;
 }

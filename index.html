@@ -2,26 +2,64 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>prison breakout</title>
+    <title>Prison Breakout</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <h1>PRISON BREAKOUT</h1>
-    <p>Encontre uma maneira de escapar da prisão!</p>
 
-    <canvas id="gameCanvas" width="800" height="450"></canvas>
-    <div style="color: #e0e0e0; font-family: Arial, sans-serif; max-width: 800px; margin: 20px auto; text-align: left; background: #1a1a1a; padding: 15px 20px; border-radius: 8px; border: 1px solid #333;">
-        <h3 style="color: #ff4d4d; margin-top: 0;">Como Jogar</h3>
-            <p>Use as teclas <strong>W, A, S, D</strong> ou as <strong>Setas do Teclado</strong> para movimentar o prisioneiro. Encontre a chave dourada dentro da cela para destrancar as grades e escapar pelo topo.</p>
-            <p>Encoste no símbolo do IF para ter uma surpresa ! (Apenas do Nivel 3)</p>
-        <h3 style="color: #ff4d4d;">Equipe de Desenvolvimento</h3>
-        <ul>
-            <li><strong>Pietro:</strong> Programação de Lógica e Física</li>
-            <li><strong>Wendel:</strong> Game Design e Arte Digital</li>
-            <li><strong>Luiz Miguel:</strong> Programação de Estado e Interface</li>
-        </ul>
+    <!-- TELA INICIAL -->
+    <div id="telaInicial">
+        <h1>PRISON BREAKOUT</h1>
+        <p>Você está preso e precisa escapar por 3 alas da prisão sem ser pego pelos guardas!</p>
+
+        <button class="btn-vermelho" onclick="jogarAgora()">Jogar Agora</button>
+        <button class="btn-cinza" onclick="abrirTutorial()">Como Jogar</button>
+
+        <!-- TUTORIAL (começa escondido) -->
+        <div id="tutorial" style="display: none;">
+            <h2>Como Jogar</h2>
+            <p><strong>Movimento:</strong> Use W, A, S, D ou as Setas do teclado.</p>
+            <p><strong>Objetivo:</strong> Pegue a chave dourada e saia pela porta no topo.</p>
+            <p><strong>Cuidado:</strong> Não encoste nos guardas. Use os móveis para fugir deles.</p>
+            <p><strong>Bônus Nível 3:</strong> Encoste no símbolo do IFSP para congelar os guardas por 2 segundos.</p>
+            <p><strong>Reiniciar:</strong> Aperte R para jogar de novo.</p>
+        </div>
+
+        <p class="creditos">
+            Desenvolvido por: Pietro, Wendel e Luiz Miguel — IFSP 2026
+        </p>
     </div>
+
+    <!-- TELA DO JOGO (começa escondida) -->
+    <div id="telaJogo" style="display: none;">
+        <h1>PRISON BREAKOUT</h1>
+        <canvas id="gameCanvas" width="800" height="450"></canvas>
+        <br>
+        <button class="btn-cinza" onclick="voltarMenu()">Voltar ao Início</button>
+    </div>
+
     <script src="game.js"></script>
+    <script>
+        function jogarAgora() {
+            document.getElementById("telaInicial").style.display = "none";
+            document.getElementById("telaJogo").style.display = "block";
+            reiniciarJogo();
+        }
+
+        function voltarMenu() {
+            document.getElementById("telaJogo").style.display = "none";
+            document.getElementById("telaInicial").style.display = "block";
+            estadoJogo = "MENU";
+        }
+
+        function abrirTutorial() {
+            let caixa = document.getElementById("tutorial");
+            if (caixa.style.display === "none") {
+                caixa.style.display = "block";
+            } else {
+                caixa.style.display = "none";
+            }
+        }
+    </script>
 </body>
 </html>
