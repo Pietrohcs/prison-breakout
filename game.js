@@ -1,3 +1,4 @@
+
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
@@ -5,6 +6,7 @@ const ctx = canvas.getContext("2d");
 let estadoJogo = "MENU";
 let nivelAtual = 1;
 let framesCongelado = 0; // 120 frames = 2 segundos
+let tentativas = 1; // Conta quantas tentativas o jogador precisou para escapar
 
 // Jogador (Prisioneiro)
 const jogador = {
@@ -125,7 +127,14 @@ document.addEventListener("keyup", function(event) {
     teclas[event.key.toLowerCase()] = false;
 });
 
+// Reiniciar o jogo
 function reiniciarJogo() {
+    if (estadoJogo === "GAME_OVER") {
+        tentativas++;
+    } else if (estadoJogo === "VITORIA") {
+        tentativas = 1;
+    }
+
     estadoJogo = "JOGANDO";
     carregarNivel(1);
 }
@@ -423,10 +432,11 @@ function desenhar() {
 
         ctx.fillStyle = "#ffffff";
         ctx.font = "bold 36px Arial";
-        ctx.fillText("VOCÊ FOI CAPTURADO!", canvas.width / 2, 200);
+        ctx.fillText("VOCÊ FOI CAPTURADO!", canvas.width / 2, 185);
 
         ctx.font = "18px Arial";
-        ctx.fillText("Pressione R para tentar novamente", canvas.width / 2, 250);
+        ctx.fillText("Tentativa atual: " + tentativas, canvas.width / 2, 225);
+        ctx.fillText("Pressione R para tentar novamente", canvas.width / 2, 260);
     }
 
     if (estadoJogo === "VITORIA") {
@@ -435,11 +445,12 @@ function desenhar() {
 
         ctx.fillStyle = "#80ed99";
         ctx.font = "bold 36px Arial";
-        ctx.fillText("VOCÊ ESCAPOU DA PRISÃO!", canvas.width / 2, 200);
+        ctx.fillText("VOCÊ ESCAPOU DA PRISÃO!", canvas.width / 2, 185);
 
         ctx.fillStyle = "#ffffff";
         ctx.font = "18px Arial";
-        ctx.fillText("Pressione R para jogar novamente", canvas.width / 2, 250);
+        ctx.fillText("Você escapou na tentativa nº " + tentativas + "!", canvas.width / 2, 225);
+        ctx.fillText("Pressione R para jogar novamente", canvas.width / 2, 260);
     }
 
     ctx.textAlign = "start";
